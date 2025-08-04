@@ -28,7 +28,7 @@
     ".next/types/**/*.ts",
     "**/*.ts",
     "**/*.tsx"
-, "middleware.js"  ],
+, "middleware.js", "app/components/button.jsx"  ],
   "exclude": [
     "node_modules"
   ]

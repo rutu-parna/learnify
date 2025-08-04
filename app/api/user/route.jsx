@@ -11,8 +11,7 @@ export async function POST(req) {
 
     if(users?.length==0)
     {
-        const result=await db.insert(usersTable).values
-        ({
+        const result=await db.insert(usersTable).values({
             name:name,
             email:email
         }).returning(usersTable);
