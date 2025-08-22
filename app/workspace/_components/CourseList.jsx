@@ -7,7 +7,7 @@ import AddNewCourseDialog from './AddNewCourseDialog';
 
 
 const CourseList = () => {
-    const [courseList,setCourseList] = useState([]);
+    const [courseList,setCourseList] = useState([]); 
     return (
         <div className='mt-10'>
             <h2 className='font-bold text-3xl'>Course List</h2>

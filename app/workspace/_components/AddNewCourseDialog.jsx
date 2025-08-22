@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import axios from 'axios';
 import {
@@ -15,8 +16,9 @@ import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from ".
 import { Button } from '../../../components/ui/button';
 import { Loader2Icon, Sparkle } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
+import { useRouter } from "next/navigation"; // ✅
 
-function AddNewCourseDialog({ children }) {
+function AddNewCourseDialog({ children }) { 
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -26,6 +28,8 @@ function AddNewCourseDialog({ children }) {
     level: '',
     category: ''
   });
+
+  const router= useRouter();
 
   const onHandleInputChanges = (field, value) => {
     setFormData(prev => ({
@@ -40,10 +44,12 @@ function AddNewCourseDialog({ children }) {
     try {
       setLoading(true);
       const result = await axios.post('/api/generate-course-layout', {
-        ...formData
+        ...formData,
+        courseId:courseId
       });
       console.log(result.data);
       setLoading(false);
+      router.push('/workspace/edit-course/'+result.data?.courseId);
     } catch (e) {
       setLoading(false);
       console.log(e);
