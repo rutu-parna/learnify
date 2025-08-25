@@ -59,41 +59,28 @@ export async function POST(req) {
       return NextResponse.json({ error: "No response from Gemini" }, { status: 500 });
     }
 
-    // ✅ Clean JSON if wrapped in ```json ... ```
-    // const rawJson = rawResp.replace(/```json|```/g, "").trim();
+  
+        
+    let rawJson = rawResp; // from Gemini or OpenAI or wherever
 
-    // let jsonResp;
-    // try {
-    //   jsonResp = JSON.parse(rawJson);
-    // } catch (err) {
-    //   console.error("JSON Parse Error:", err, rawResp);
-    //   return NextResponse.json(
-    //     { error: "Failed to parse JSON from AI response" },
-    //     { status: 500 }
-    //   );
-    // }
+    // 1. Remove code fences like ```json or ```
+    rawJson = rawJson.replace(/```json/g, "").replace(/```/g, "");
 
-    
-let rawJson = rawResp; // from Gemini or OpenAI or wherever
+    // 2. Optionally, strip any trailing notes after the JSON object
+    const firstBrace = rawJson.indexOf("{");
+    const lastBrace = rawJson.lastIndexOf("}");
+    if (firstBrace !== -1 && lastBrace !== -1) {
+      rawJson = rawJson.substring(firstBrace, lastBrace + 1);
+    }
 
-// 1. Remove code fences like ```json or ```
-rawJson = rawJson.replace(/```json/g, "").replace(/```/g, "");
-
-// 2. Optionally, strip any trailing notes after the JSON object
-const firstBrace = rawJson.indexOf("{");
-const lastBrace = rawJson.lastIndexOf("}");
-if (firstBrace !== -1 && lastBrace !== -1) {
-  rawJson = rawJson.substring(firstBrace, lastBrace + 1);
-}
-
-let jsonResp;
-try {
-  jsonResp = JSON.parse(rawJson);
-  console.log("✅ Parsed JSON:", jsonResp);
-} catch (err) {
-  console.error("❌ JSON Parse Error:", err, rawJson);
-  return NextResponse.json({ error: "Failed to parse JSON" }, { status: 500 });
-}
+    let jsonResp;
+    try {
+      jsonResp = JSON.parse(rawJson);
+      console.log("✅ Parsed JSON:", jsonResp);
+    } catch (err) {
+      console.error("❌ JSON Parse Error:", err, rawJson);
+      return NextResponse.json({ error: "Failed to parse JSON" }, { status: 500 });
+    }
 
     console.log("RAW RESPONSE:", rawResp);
     console.log("PARSED JSON:", jsonResp);

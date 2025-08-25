@@ -1,13 +1,41 @@
 import { Book, Clock, Settings, TrendingUp } from 'lucide-react';
-import React from 'react'
+import React, { useState } from 'react';
+import axios from 'axios';
+
 import Image from "next/image";
 import { Button } from '../../../../components/ui/button';
+import { useRouter } from 'next/navigation';
+import { toast } from "sonner"
+
 
 
 
 function CourseInfo({course}) {
     
     const courseLayout = course?.courseJson;
+    const [loading,setLoading] = useState(false);
+    const router = useRouter();
+    const GenerateCourseContent = async ()=>{
+
+        setLoading(true);
+        try {
+            const result = await axios.post('/api/generate-course-content',{
+                courseJson : courseLayout,
+                courseTitle : course?.name,
+                courseId:course?.cid
+            });
+
+            console.log(result.data);
+            setLoading(false);
+            router.replace('/workspace');
+            toast.success('Course Generated Successfully')
+        } catch (e) {
+            console.log(e);
+            setLoading(false);
+            toast("Server Side Error,Try Again")
+        }
+    }
+
     return (
         <div className=' md:flex gap-5 justify-between rounded-2xl shadow'>
             <div className='flex flex-col gap-3'>
@@ -37,7 +65,10 @@ function CourseInfo({course}) {
                     </div>
                 </div>
 
-                <Button className={'max-w-sm'}> <Settings /> Generate Content</Button>
+                <Button onClick={GenerateCourseContent} className="max-w-sm">
+                    {loading ? "Generating..." : <> <Settings /> Generate Content </>}
+                </Button>
+
 
             </div>
 
