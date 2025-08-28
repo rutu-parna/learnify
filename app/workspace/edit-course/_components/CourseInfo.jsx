@@ -53,14 +53,14 @@ function CourseInfo({course}) {
                         <Book className='text-green-500' />
                         <section>
                             <h2 className='font-bold'>Chapters</h2>
-                            <h2>2 Hours</h2>
+                            <h2>{courseLayout?.course?.noOfChapters} Hours</h2>
                         </section>
                     </div>
                     <div className='flex gap-5 items-center p-3 rounded-lg shadow'>
                         <TrendingUp className='text-red-500' />
                         <section>
                             <h2 className='font-bold'>Difficulty Level</h2>
-                            <h2>{courseLayout?.level}</h2>
+                            <h2>{courseLayout?.course?.level}</h2>
                         </section>
                     </div>
                 </div>
