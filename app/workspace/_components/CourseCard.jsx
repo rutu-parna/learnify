@@ -9,7 +9,7 @@ function CourseCard({course}) {
     const courseJson = course?.courseJson?.course;
     return (
         <div className='shadow rounded-xl'>
-            <Image src={course?.bannerImageUrl} alt={course?.name}
+            <Image src={course?.bannerImageUrl || "/courselist1.svg"} alt={course?.name}
             width={400}
             height={300}
             className='w-full aspect-video rounded-t-xl object-cover '

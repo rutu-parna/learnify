@@ -50,7 +50,7 @@ export async function POST(req) {
     
     console.log("GEMINI RAW RESULT:", JSON.stringify(result, null, 2));
 
-    // console.log("lllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllll");
+    console.log("lllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllll");
 
     // ✅ Extract response
     const rawResp =
@@ -120,6 +120,7 @@ export async function POST(req) {
 import cloudinary from "../../config/cloudinary";
 
 const GenerateImage = async (ImagePrompt) => {
+  console.log(ImagePrompt);
   if (!ImagePrompt) return null;
 
   try {
