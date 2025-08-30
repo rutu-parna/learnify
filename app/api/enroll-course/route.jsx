@@ -1,6 +1,6 @@
 import { coursesTable, enrollCourseTable } from "../../config/schema";
 import { currentUser } from "@clerk/nextjs/server";
-import { eq, and } from "drizzle-orm";  
+import { eq, and,desc } from "drizzle-orm";  
 import { NextResponse } from "next/server";
 import { db } from "../../config/db";
 
@@ -37,4 +37,14 @@ export async function POST(req) {
   }
 
   return NextResponse.json({ resp: "Already Enrolled" });
+}
+
+export async function GET(req) {
+    const user=currentUser();
+    const result=await db.select().from(coursesTable)
+    .innerJoin(enrollCourseTable,eq(coursesTable.cid,enrollCourseTable.cid))
+    .where(eq(enrollCourseTable.userEmail))
+    .orderBy(desc(enrollCourseTable.id));
+
+    return NextResponse.json(result);
 }

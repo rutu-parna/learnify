@@ -25,7 +25,7 @@ const CourseList = () => {
 
     return (
         <div className='mt-10'>
-            <h2 className='font-bold text-3xl'>Course List</h2>
+            <h2 className='font-bold text-xl'>Course List</h2>
 
             {courseList?.length == 0 ?
              <div className='flex p-7 items-center justify-center flex-col border rounded-xl mt-2 bg-secondary'>
