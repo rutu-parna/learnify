@@ -1,10 +1,11 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
+import { Button } from "../../../components/ui/button";
+import { Progress } from "../../../components/ui/progress";
 import React from "react";
 import Image from "next/image";
 import { PlayCircle } from "lucide-react";
+import Link from "next/link";
 
 function EnrollCourseCard({course,enrollCourse}) {
       const courseJson = course?.courseJson?.course;
@@ -29,7 +30,7 @@ function EnrollCourseCard({course,enrollCourse}) {
             <h2 className='flex justify-between text-sm text-primary'>Progress <span>{CalculatePerProgress()}%</span></h2>
             <Progress value={CalculatePerProgress()} />
 
-          <Link href={'/workspace/course'+course?.cid}>
+          <Link href={'/workspace/view-course/'+course?.cid}>
            <Button className={'w-full mt-3'}> <PlayCircle/>Continue Learning</Button>
            </Link>
         </div>

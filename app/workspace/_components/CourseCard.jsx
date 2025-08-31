@@ -10,22 +10,10 @@ function CourseCard({ course }) {
   const courseJson = course?.courseJson?.course;
   const [loading, setLoading] = useState(false);
 
-
-    // const courseJson = course?.courseJson?.course;
-    // return (
-    //     <div className='shadow rounded-xl'>
-    //         <Image src={course?.bannerImageUrl || "/courselist1.svg"} alt={course?.name}
-    //         width={400}
-    //         height={300}
-    //         className='w-full aspect-video rounded-t-xl object-cover '
-    //         />
-
 const onEnrollCourse = async () => {
     try {
       setLoading(true);
-      const result = await axios.post('/api/enroll-course', {
-        courseId: course?.cid
-      });
+      const result = await axios.post('/api/enroll-course', {courseId: course?.cid});
       console.log(result.data);
 
 
@@ -37,10 +25,9 @@ const onEnrollCourse = async () => {
       toast.success('Enrolled!')
       setLoading(false);
     } catch (e) {
-      toast.error('Server side error');
-    } finally {
+      toast.error('Server side error');  
       setLoading(false);
-    }
+    } 
   };
 
   return (

@@ -1,4 +1,4 @@
-import { Book, Clock, Settings, TrendingUp } from 'lucide-react';
+import { Book, Clock, PlayIcon, Settings, TrendingUp } from 'lucide-react';
 import React, { useState } from 'react';
 import axios from 'axios';
 
@@ -6,11 +6,12 @@ import Image from "next/image";
 import { Button } from '../../../../components/ui/button';
 import { useRouter } from 'next/navigation';
 import { toast } from "sonner"
+import Link from 'next/link';
 
 
 
 
-function CourseInfo({course}) {
+function CourseInfo({course,viewCourse}) {
     
     const courseLayout = course?.courseJson;
     const [loading,setLoading] = useState(false);
@@ -65,9 +66,10 @@ function CourseInfo({course}) {
                     </div>
                 </div>
 
-                <Button onClick={GenerateCourseContent} className="max-w-sm">
-                    {loading ? "Generating..." : <> <Settings /> Generate Content </>}
-                </Button>
+                {!viewCourse ?
+                 <Button onClick={GenerateCourseContent} className="max-w-sm">
+                    {loading ? "Generating..." : <> <Settings /> Generate Content </>} </Button>
+                    : <Link href={'/course/'+course?.cid}> <Button> <PlayIcon/> Continue Learning </Button> </Link>}  
 
 
             </div>
