@@ -7,12 +7,14 @@ import {
 } from "../../../components/ui/accordion"
 import  SelectedChapterIndexContext  from "../../../context/SelectedChapterIndexContext"; // ✅ Import
 
+
     
 function ChapterListSidebar({courseInfo}) {
     const course = courseInfo?.courses;
     const enrollCourse = courseInfo?.enrollCourse;
     const courseContent = courseInfo?.courses?.courseContent;
     const {SelectedChapterIndex,setSelectedChapterIndex} = useContext(SelectedChapterIndexContext);
+    let completedChapter=enrollCourse?.completedChapter??[];
     
 
   return (
@@ -23,11 +25,17 @@ function ChapterListSidebar({courseInfo}) {
                     <AccordionItem value={chapter?.courseData?.chapterName} key = {index}
                     onClick={()=>setSelectedChapterIndex(index)}
                     >
-                        <AccordionTrigger className={'text-lg font-medium truncate'}> {index+1}.{chapter?.courseData?.chapterName}</AccordionTrigger>
-                        <AccordionContent>
+                        <AccordionTrigger className={`text-lg font-medium 
+                             ${completedChapter.includes(index)?'bg-green-100 text-green-800':''}`}>
+                                {index+1}.{chapter?.courseData?.chapterName}
+                            </AccordionTrigger>
+                        <AccordionContent asChild>
                             <div className=''>
-                                {chapter?.courseData?.topics.map((topic,index) => (
-                                    <h2 className='p-3 bg-white my-1 rounded-lg' key = {index}>{topic?.topic} </h2>
+                                {chapter?.courseData?.topics.map((topic,index_) => (
+                                    <h2 key = {index_}
+                                    className={`p-3  my-1 rounded-lg
+                                        ${completedChapter.includes(index)?'bg-green-100 text-green-800':'bg-white'}` }>
+                                            {completedChapter.includes(index)}{topic?.topic} </h2>
 
                                 ))}
                             </div>
