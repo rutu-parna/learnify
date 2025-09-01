@@ -10,7 +10,7 @@ function ChapterContent({courseInfo}) {
   const topics = courseContent?.[SelectedChapterIndex]?.courseData?.topics;
 
   return (
-    <div className='p-10'>
+    <div className='p-10 ml-80 mt-20'>
         <h2 className='font-bold text-2xl'>{SelectedChapterIndex+1}. {courseContent?.[SelectedChapterIndex]?.courseData?.chapterName}</h2>
 
         <h2 className='my-2 font-bold text-lg'>Related Videos 🎬</h2>
