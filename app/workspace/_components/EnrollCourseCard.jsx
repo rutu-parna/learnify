@@ -9,9 +9,16 @@ import Link from "next/link";
 
 function EnrollCourseCard({course,enrollCourse}) {
       const courseJson = course?.courseJson?.course;
-      const CalculatePerProgress=()=>{
-        return (enrollCourse?.completeChapters?.length??0/course?.courseContent?.length)*100
+      const CalculatePerProgress = () => {
+        const completed = enrollCourse?.completedChapters?.length ?? 0;
+        const total = course?.courseContent?.length;
+
+        if (!total || total === 0) return 0;
+        console.log("Completed:", completed, "Total:", total);
+
+        return Math.floor((completed / total) * 100);
       }
+
   return (
     <div className="shadow rounded-xl">
       <Image

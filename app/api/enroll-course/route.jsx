@@ -61,8 +61,8 @@ export async function PUT(req)
   const result=await db.update(enrollCourseTable).set({
     completedChapters:completedChapter
   }).where(and(eq(enrollCourseTable.cid,courseId),
-  eq(enrollCourseTable.userEmail,user?.primaryEmailAddress?.emailAddres)))
+  eq(enrollCourseTable.userEmail,user?.primaryEmailAddress?.emailAddress)))
   .returning(enrollCourseTable)
-
+     
   return NextResponse.json(result);
 }

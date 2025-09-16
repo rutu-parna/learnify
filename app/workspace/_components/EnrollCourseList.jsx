@@ -19,7 +19,7 @@ function EnrollCourseList() {
   return enrollCourseList?.length>0 &&(
     <div className='mt-3'>
 
-        <h2 className='font-bold text-3xl'>Continue Learning your courses</h2>
+        <h2 className='font-bold text-3xl mb-4'>Continue Learning your courses</h2>
         <div className='grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-5'>
             {
             enrollCourseList?.map((course,index)=>(

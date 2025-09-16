@@ -27,27 +27,17 @@ const SideBArOPtions = [
   {
     title: "My Learning",
     icon: Book,
-    path: "/my-courses",
+    path: "/workspace/my-learning",
   },
   {
     title: "Explore Courses",
     icon: Compass,
-    path: "/explore",
-  },
-  {
-    title: "AI Tools",
-    icon: PencilRulerIcon,
-    path: '/ai-tools'
-  },
-  {
-    title: "Billing",
-    icon: WalletCards,
-    path: "/billing",
+    path: "/workspace/explore",
   },
   {
     title: 'Profile',
     icon: UserCircle2Icon,
-    path: "/profile",
+    path: "/workspace/profile",
   }
 ];
 
