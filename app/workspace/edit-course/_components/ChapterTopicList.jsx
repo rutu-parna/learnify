@@ -3,6 +3,20 @@ import React from "react";
 
 const ChapterTopicList = ({ course }) => {
   const courseLayout = course?.courseJson?.course;
+//   const getChapterDuration = (chapter) => {
+//   if (!chapter?.topics) return "0 min";
+
+//   // assume each topic has a duration in minutes (number)
+//   const totalMinutes = chapter.topics.reduce((sum, topic) => {
+//     return sum + (topic.duration || 0);
+//   }, 0);
+
+//   const hours = Math.floor(totalMinutes / 60);
+//   const minutes = totalMinutes % 60;
+
+//   return hours > 0 ? `${hours} hr ${minutes} min` : `${minutes} min`;
+// };
+
   return (
     <div>
       <h2 className="font-bold text-3xl mt-10">Chapter & Topics</h2>

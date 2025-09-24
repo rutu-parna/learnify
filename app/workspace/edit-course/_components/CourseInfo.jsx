@@ -37,6 +37,48 @@ function CourseInfo({course,viewCourse}) {
         }
     }
 
+    // Convert duration string (like "1.5 hours", "30 minutes", "2 hrs 15 mins") → minutes
+const parseDurationToMinutes = (duration) => {
+  if (!duration) return 0;
+
+  const lower = duration.toLowerCase();
+
+  let totalMinutes = 0;
+
+  // Match hours (e.g., "1 hour", "2 hrs", "1.5 hours")
+  const hourMatch = lower.match(/([\d.]+)\s*hour/);
+  if (hourMatch) {
+    totalMinutes += parseFloat(hourMatch[1]) * 60;
+  }
+
+  // Match minutes (e.g., "30 minutes", "45 min")
+  const minMatch = lower.match(/([\d.]+)\s*min/);
+  if (minMatch) {
+    totalMinutes += parseFloat(minMatch[1]);
+  }
+
+  return totalMinutes;
+};
+
+// Sum up durations of all chapters
+const calculateTotalDuration = (chapters) => {
+  if (!chapters) return "0 hrs";
+
+  const totalMinutes = chapters.reduce((total, chapter) => {
+    return total + parseDurationToMinutes(chapter.duration);
+  }, 0);
+
+  // Convert back to hrs + mins
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+
+  if (hours > 0 && minutes > 0) return `${hours} hrs ${minutes} mins`;
+  if (hours > 0) return `${hours} hrs`;
+  return `${minutes} mins`;
+};
+
+
+
     return (
         <div className=' md:flex gap-5 justify-between rounded-2xl shadow'>
             <div className='flex flex-col gap-3'>
@@ -47,14 +89,16 @@ function CourseInfo({course,viewCourse}) {
                         <Clock className='text-blue-500' />
                         <section>
                             <h2 className='font-bold'>Duration</h2>
-                            <h2>2 Hours</h2>
+                            <h2>
+                            {calculateTotalDuration(courseLayout?.course?.chapters)} 
+                            </h2>
                         </section>
                     </div>
                     <div className='flex gap-5 items-center p-3 rounded-lg shadow'>
                         <Book className='text-green-500' />
                         <section>
                             <h2 className='font-bold'>Chapters</h2>
-                            <h2>{courseLayout?.course?.noOfChapters} Hours</h2>
+                            <h2>{courseLayout?.course?.noOfChapters} Chapters</h2>
                         </section>
                     </div>
                     <div className='flex gap-5 items-center p-3 rounded-lg shadow'>
