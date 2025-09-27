@@ -48,7 +48,7 @@ AI Tools: Gemini API, HuggingFace
 
 Deployment: Vercel
 
-📸 Screenshots
+📸 A Quick Snapshot Of The Website
 <img width="1884" height="888" alt="image" src="https://github.com/user-attachments/assets/57a29193-49b9-4fa2-a089-2a240f214da9" />
 <img width="1899" height="910" alt="image" src="https://github.com/user-attachments/assets/e04b1b9c-6389-401b-b42e-99bd5571df0c" />
 <img width="1839" height="816" alt="image" src="https://github.com/user-attachments/assets/0a225e85-1a87-4b5b-a7c8-f68ee392f7a7" />
@@ -84,5 +84,6 @@ This project is licensed under the MIT License.
 👩‍💻 Author
 
 Rutuparna Pradhan
+
 
 
