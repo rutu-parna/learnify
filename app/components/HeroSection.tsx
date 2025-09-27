@@ -44,9 +44,9 @@ export const HeroSection = () => {
                 </Button>
             </Link>
             
-            <Button variant="glass" size="lg">
+            {/* <Button variant="glass" size="lg">
               Watch Demo
-            </Button>
+            </Button> */}
           </div>
           
           <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">

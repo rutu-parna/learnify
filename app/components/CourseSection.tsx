@@ -62,7 +62,7 @@ export const CourseSection = () => {
               
               <div className="p-6">
                 <div className="flex items-center gap-2 mb-3">
-                  <Badge variant="secondary">{course.level}</Badge>
+                  {/* <Badge variant="secondary">{course.level}</Badge> */}
                   <div className="flex items-center gap-1 text-sm text-muted-foreground">
                     <Star className="w-4 h-4 fill-current text-accent" />
                     {course.rating}
@@ -92,10 +92,10 @@ export const CourseSection = () => {
                   <div className="text-2xl font-bold gradient-text">
                     {course.price}
                   </div>
-                  <Button variant="glow" className="group">
+                  {/* <Button variant="glow" className="group">
                     Enroll Now
                     <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                  </Button>
+                  </Button> */}
                 </div>
               </div>
             </div>
@@ -103,9 +103,9 @@ export const CourseSection = () => {
         </div>
         
         <div className="text-center mt-12">
-          <Button variant="hero" size="lg">
+          {/* <Button variant="hero" size="lg">
             View All Courses
-          </Button>
+          </Button> */}
         </div>
       </div>
     </section>

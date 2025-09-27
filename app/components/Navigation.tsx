@@ -54,13 +54,12 @@ export const Navigation = () => {
             )} */}
 
             <Link href="/workspace">
-  <Button
-    variant="glow"
-    className="transition-all duration-300 transform shadow-md shadow-blue-300 hover:scale-105 hover:shadow-xl hover:shadow-blue-500/70"
-  >
-    Get Started
-  </Button>
-</Link>
+                <Button
+                  variant="glow"
+                  className="transition-all duration-300 transform shadow-md shadow-blue-300 hover:scale-105 hover:shadow-xl hover:shadow-blue-500/70">
+                  Get Started
+                </Button>
+          </Link>
           </div>
 
           {/* Mobile Menu Button */}
