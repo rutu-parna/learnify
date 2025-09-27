@@ -1,38 +1,88 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+📚 Learnify – AI-Powered Online Learning Platform
 
-## Getting Started
+Learnify is a modern online learning platform built with Next.js that makes learning engaging and personalized. With interactive courses, AI-driven recommendations, and a sleek UI, Learnify helps learners upskill faster and smarter.
 
-First, run the development server:
+🚀 Getting Started
+1️⃣ Clone the repository
+git clone https://github.com/rutu-parna/learnify.git
+cd learnify
 
-```bash
+2️⃣ Install dependencies
+npm install
+# or
+yarn install
+# or
+pnpm install
+# or
+bun install
+
+3️⃣ Run the development server
 npm run dev
 # or
 yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+Visit 👉 http://localhost:3000
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+✨ Features
 
-## Learn More
+🎯 User-Friendly UI – Beautiful, responsive, and intuitive design
 
-To learn more about Next.js, take a look at the following resources:
+🤖 AI-Powered Recommendations – Personalized course suggestions
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+📚 Course Management – Browse, enroll, and track learning progress
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+🔐 Authentication – Secure user login and dashboard
 
-## Deploy on Vercel
+⚡ Modern Stack – Next.js, TailwindCSS, Supabase, Drizzle ORM
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+🛠️ Tech Stack
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-"# learnify" 
-"# learnify" 
+Frontend: Next.js, React, TailwindCSS, ShadCN UI
+
+Backend: Node.js, Drizzle ORM
+
+Database: Supabase / PostgreSQL
+
+AI Tools: Gemini API, HuggingFace
+
+Deployment: Vercel
+
+📸 Screenshots
+<img width="1884" height="888" alt="image" src="https://github.com/user-attachments/assets/57a29193-49b9-4fa2-a089-2a240f214da9" />
+<img width="1899" height="910" alt="image" src="https://github.com/user-attachments/assets/e04b1b9c-6389-401b-b42e-99bd5571df0c" />
+<img width="1839" height="816" alt="image" src="https://github.com/user-attachments/assets/0a225e85-1a87-4b5b-a7c8-f68ee392f7a7" />
+
+
+
+📈 Roadmap
+
+ Add AI-powered chatbot for Q&A
+
+ Introduce course completion certificates
+
+ Add video lectures & live sessions
+
+ Build mobile app (React Native)
+
+🤝 Contributing
+
+Fork the repo
+
+Create a new branch (git checkout -b feature/your-feature)
+
+Commit changes (git commit -m "feat: add your feature")
+
+Push branch (git push origin feature/your-feature)
+
+Open a Pull Request 🚀
+
+📜 License
+
+This project is licensed under the MIT License.
+
+👩‍💻 Author
+
+Rutuparna Pradhan
+
+
