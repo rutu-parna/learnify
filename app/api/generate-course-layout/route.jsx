@@ -3,176 +3,194 @@ import { currentUser } from "@clerk/nextjs/server";
 import { db } from "../../config/db";
 import { NextResponse } from "next/server";
 
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { InferenceClient } from "@huggingface/inference";
+import cloudinary from "../../config/cloudinary";
 
-// ---- PROMPT TEMPLATE ----
-const PROMPT = `Generate Learning Course depends on following details. 
-Make sure to add Course Name, Description, Course Banner Image Prompt (Create a modern, flat-style 2D digital illustration representing user Topic. Include UI/UX elements such as mockup screens, text blocks, icons, buttons, and creative workspace tools. Add symbolic elements related to user Course, like sticky notes, design components, and visual aids. Use a vibrant color palette (blues, purples, oranges) with a clean, professional look. The illustration should feel creative, tech-savvy, and educational, ideal for visualizing concepts in user Course) for Course Banner in 3d format, Chapter Name, Topic under each chapters, Duration for each chapters etc, in JSON format only.  
+// -------------------------
+//  STRICT JSON PROMPT
+// -------------------------
+const PROMPT = `
+You MUST return ONLY valid JSON. 
+No markdown, no explanation, no notes, no commentary.
 
-Schema:  
-{  
-  "course": {  
-    "name": "string",  
-    "description": "string",  
-    "category": "string",  
-    "level": "string",  
-    "includeVideo": "boolean",  
-    "noOfChapters": "number",  
-    "bannerImagePrompt": "string",  
-    "chapters": [  
-      {  
-        "chapterName": "string",  
-        "duration": "string",  
-        "topics": [  
-          "string"  
-        ]  
-      }  
-    ]  
-  }  
-}  
+Schema format to follow strictly:
+
+{
+  "course": {
+    "name": "string",
+    "description": "string",
+    "category": "string",
+    "level": "string",
+    "includeVideo": "boolean",
+    "noOfChapters": "number",
+    "bannerImagePrompt": "string",
+    "chapters": [
+      {
+        "chapterName": "string",
+        "duration": "string",
+        "topics": ["string"]
+      }
+    ]
+  }
+}
+
+Rules:
+- Output MUST be valid JSON only.
+- Do NOT wrap inside backticks.
+- Do NOT add bold text or markdown formatting.
 
 User Input:
 `;
 
 export async function POST(req) {
+  console.log("✅ HF TOKEN LOADED:", !!process.env.HUGGINGFACE_API_KEY);
+  console.log(
+    "🔑 HF TOKEN PREFIX:",
+    process.env.HUGGINGFACE_API_KEY?.slice(0, 6)
+  );
+
   try {
     const { courseId, ...formData } = await req.json();
     const user = await currentUser();
 
-    // ✅ Setup Gemini
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash"});
+    // -------------------------
+    //  HF DeepSeek Client
+    // -------------------------
+    const client = new InferenceClient(process.env.HUGGINGFACE_API_KEY);
 
+    let rawResp = "";
 
-    // ✅ Call Gemini with raw prompt
-    const prompt = PROMPT + JSON.stringify(formData);
-    const result = await model.generateContent(prompt);
-    
-    console.log("GEMINI RAW RESULT:", JSON.stringify(result, null, 2));
+    const chatCompletion = await client.chatCompletion({
+      model: "deepseek-ai/DeepSeek-V3.2:novita",
+      messages: [
+        {
+          role: "user",
+          content: PROMPT + JSON.stringify(formData),
+        },
+      ],
+      max_tokens: 1600,
+      temperature: 0.4,
+    });
 
-    console.log("lllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllll");
+    rawResp = chatCompletion?.choices?.[0]?.message?.content || "";
 
-    // ✅ Extract response
-    const rawResp =
-      result?.response?.candidates[0]?.content?.parts[0]?.text || "";
     if (!rawResp) {
-      return NextResponse.json({ error: "No response from Gemini" }, { status: 500 });
+      return NextResponse.json(
+        { error: "No response from DeepSeek" },
+        { status: 500 }
+      );
     }
 
-  
-        
-    let rawJson = rawResp; // from Gemini or OpenAI or wherever
+    // -------------------------
+    //  Extract JSON reliably
+    // -------------------------
+    const jsonMatch = rawResp.match(/\{[\s\S]*\}/);
 
-    // 1. Remove code fences like ```json or ```
-    rawJson = rawJson.replace(/```json/g, "").replace(/```/g, "");
-
-    // 2. Optionally, strip any trailing notes after the JSON object
-    const firstBrace = rawJson.indexOf("{");
-    const lastBrace = rawJson.lastIndexOf("}");
-    if (firstBrace !== -1 && lastBrace !== -1) {
-      rawJson = rawJson.substring(firstBrace, lastBrace + 1);
+    if (!jsonMatch) {
+      console.error("❌ Could not find JSON in response:", rawResp);
+      return NextResponse.json(
+        { error: "AI did not return valid JSON" },
+        { status: 500 }
+      );
     }
+
+    let rawJson = jsonMatch[0];
 
     let jsonResp;
     try {
       jsonResp = JSON.parse(rawJson);
       console.log("✅ Parsed JSON:", jsonResp);
     } catch (err) {
-      console.error("❌ JSON Parse Error:", err, rawJson);
-      return NextResponse.json({ error: "Failed to parse JSON" }, { status: 500 });
+      console.error("❌ JSON Parse Error:", rawJson);
+      return NextResponse.json(
+        { error: "Invalid JSON returned by AI" },
+        { status: 500 }
+      );
     }
 
-    console.log("RAW RESPONSE:", rawResp);
-    console.log("PARSED JSON:", jsonResp);
+    // -------------------------
+    //  Generate Image Prompt
+    // -------------------------
+    const ImagePrompt =
+      jsonResp?.course?.bannerImagePrompt ||
+      `Create a modern educational illustration for: ${formData.name}`;
 
-    const ImagePrompt = jsonResp?.course?.bannerImagePrompt || `Create a modern flat 2D educational course illustration for ${formData.name || "the course"}`;
-    console.log(ImagePrompt);
     const bannerImageUrl = await GenerateImage(ImagePrompt);
-    console.log("Gemini RAW RESPONSE:", JSON.stringify(result, null, 2));
 
-
-    // ✅ Save to DB
-
-    // delete formData.bannerImagePrompt;
-    
-
+    // -------------------------
+    //  Save to DB
+    // -------------------------
     await db.insert(coursesTable).values({
       ...formData,
       courseJson: jsonResp,
       userEmail: user?.primaryEmailAddress?.emailAddress,
       cid: courseId,
-      bannerImageUrl:bannerImageUrl
+      bannerImageUrl,
     });
 
     return NextResponse.json({ courseId }, { status: 200 });
   } catch (error) {
-    console.error("Error in generate-course-layout:", error);
+    console.error("🔥 Error in generate-course-layout:", error);
     return NextResponse.json(
       { error: error.message || "Internal Server Error" },
       { status: 500 }
     );
   }
-};
+}
+
+// -------------------------
+// IMAGE GENERATION (FLUX)
+// -------------------------
 
 
-
-
-import cloudinary from "../../config/cloudinary";
-
-const GenerateImage = async (ImagePrompt) => {
-  console.log(ImagePrompt);
-  if (!ImagePrompt) return null;
+const GenerateImage = async (prompt) => {
+  if (!prompt) return null;
 
   try {
     const response = await fetch(
-      "https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-dev",
+      "https://router.huggingface.co/hf-inference/models/stabilityai/stable-diffusion-xl-base-1.0",
       {
         method: "POST",
         headers: {
           Authorization: `Bearer ${process.env.HUGGINGFACE_API_KEY}`,
           "Content-Type": "application/json",
+          Accept: "image/png",
         },
-        body: JSON.stringify({ inputs: ImagePrompt }),
+        body: JSON.stringify({ inputs: prompt }),
       }
     );
 
     if (!response.ok) {
-      const errMsg = await response.text();
-      console.error("❌ HF API Error:", errMsg);
+      console.error("❌ HF Image API Error:", await response.text());
       return null;
     }
 
-    // Hugging Face returns raw PNG bytes
+    // Convert HF PNG bytes → buffer
     const buffer = Buffer.from(await response.arrayBuffer());
 
-    // Upload buffer directly to Cloudinary
-    const uploadResp = await cloudinary.uploader.upload_stream({
-      folder: "courses",  // optional: put all images in "courses" folder
-      resource_type: "image",
-    });
-
+    // Upload to Cloudinary
     return new Promise((resolve, reject) => {
-      const stream = cloudinary.uploader.upload_stream(
-        { folder: "courses" },
-        (error, result) => {
-          if (error) reject(error);
-          else resolve(result.secure_url); // ✅ only return URL
+      const uploadStream = cloudinary.uploader.upload_stream(
+        {
+          folder: "courses",
+          resource_type: "image",
+        },
+        (err, result) => {
+          if (err) {
+            console.error("❌ Cloudinary Upload Error:", err);
+            reject(err);
+          } else {
+            resolve(result.secure_url);
+          }
         }
       );
-      stream.end(buffer);
+
+      uploadStream.end(buffer); // push PNG buffer
     });
-  } catch (error) {
-    console.error("🔥 Exception in GenerateImage:", error);
+  } catch (err) {
+    console.error("🔥 GenerateImage Exception:", err);
     return null;
   }
 };
 
-
-
-
-
-
-
-
-
-
+export default GenerateImage;
