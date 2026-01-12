@@ -1,128 +1,150 @@
-// app/api/generate-course-content/route.js (or route.ts if using TypeScript)
+// app/api/generate-course-content/route.js
 
 import { NextResponse } from "next/server";
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import { db } from "../../config/db";
 import { eq } from "drizzle-orm";
-   
-// Initialize Gemini client
-const ai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 import axios from "axios";
+
+import { InferenceClient } from "@huggingface/inference";
 import { coursesTable } from "../../config/schema";
 
+// HF Client
+const hf = new InferenceClient(process.env.HUGGINGFACE_API_KEY);
 
-// Prompt template
-const PROMPT = `Depends on chapter name and topics, generate detailed content for each topic in HTML.
-Return response strictly in JSON format only.
+// ------------ PROMPT ------------
+const PROMPT = `
+You MUST return ONLY VALID JSON. 
+NO markdown, NO explanations, NO extra text.
 
-Schema:
+You will receive a chapter with:
+- chapterName
+- topics: ["t1", "t2"]
+
+For each topic generate clean HTML learning content.
+
+STRICT JSON SCHEMA:
 {
   "chapterName": "string",
   "topics": [
     {
       "topic": "string",
-      "content": "string (HTML)"
+      "content": "string"
     }
   ]
 }
 
+Return ONLY JSON. NOTHING ELSE.
+
 User Input:
-`;
+`;  
 
 export async function POST(req) {
   try {
     const { courseJson, courseTitle, courseId } = await req.json();
     console.log("📩 Received body:", { courseJson, courseTitle, courseId });
 
+    if (!courseJson?.course?.chapters) {
+      return NextResponse.json(
+        { error: "Invalid course structure" },
+        { status: 400 }
+      );
+    }
 
-    // // Validate input
-    // if (!courseJson || !courseJson.chapters) {
-    //   return NextResponse.json(
-    //     { error: "Invalid course data received" },
-    //     { status: 400 }
-    //   );
-    // }
-
-    // Load Gemini model
-    const model = ai.getGenerativeModel({ model: "gemini-1.5-flash" });
-
-    // Generate content for each chapter
-    const promises = courseJson?.course?.chapters.map(async (chapter) => {
+    // ------------ PROCESS EACH CHAPTER ------------
+    const promises = courseJson.course.chapters.map(async (chapter) => {
       const prompt = PROMPT + JSON.stringify(chapter);
 
-      const result = await model.generateContent(prompt);
+      // HF Chat Completion
+      const result = await hf.chatCompletion({
+        model: "deepseek-ai/DeepSeek-V3.2:novita",
+        messages: [
+          {
+            role: "user",
+            content: prompt,
+          },
+        ],
+        temperature: 0.3,
+        max_tokens: 2000,
+      });
 
-      // Extract raw response text
-      let rawResp =
-        result?.response?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+      let rawResp = result?.choices?.[0]?.message?.content || "";
+      console.log("🔥 RAW HF RESPONSE:", rawResp);
 
-      // Remove markdown formatting if present
-      rawResp = rawResp.replace(/```json|```/g, "").trim();
+      // ------------ CLEAN JSON ------------
+      let clean = rawResp.replace(/```json|```/g, "").trim();
+      const first = clean.indexOf("{");
+      const last = clean.lastIndexOf("}");
+      if (first !== -1 && last !== -1) clean = clean.substring(first, last + 1);
 
-      let parsed;
+      let parsedJson;
       try {
-        parsed = JSON.parse(rawResp);
+        parsedJson = JSON.parse(clean);
       } catch (err) {
-        console.error("❌ JSON parse error:", rawResp);
-        parsed = {
-          chapterName: chapter.chapterName || "Untitled Chapter",
-          topics: [],
+        console.error("❌ JSON Parse Error:", clean);
+        parsedJson = {
+          chapterName: chapter.chapterName,
+          topics: chapter.topics.map((t) => ({
+            topic: t,
+            content: "<p>Content could not be generated.</p>",
+          })),
         };
       }
 
-      const youtubeData = await GetYoutubeVideo(chapter?.chapterName);
+      // ------------ FETCH YOUTUBE VIDEO ------------
+      const youtubeData = await GetYoutubeVideo(chapter.chapterName);
 
-
-      return{
-        youtubeVideo:youtubeData,
-        courseData: parsed
-      }
+      return {
+        youtubeVideo: youtubeData,
+        courseData: parsedJson,
+      };
     });
 
     const CourseContent = await Promise.all(promises);
 
-    // Final response
-    const dbResp = await db.update(coursesTable).set({
-        courseContent:CourseContent 
-    }).where(eq(coursesTable.cid,courseId));
-      
-    return NextResponse.json({
-      courseId,
-      courseName: courseTitle,
-      CourseContent,
-    });
+    // ------------ SAVE COURSE CONTENT ------------
+    await db
+      .update(coursesTable)
+      .set({ courseContent: CourseContent })
+      .where(eq(coursesTable.cid, courseId));
+
+    return NextResponse.json(
+      {
+        courseId,
+        courseName: courseTitle,
+        CourseContent,
+      },
+      { status: 200 }
+    );
   } catch (err) {
     console.error("❌ Error generating course content:", err);
     return NextResponse.json(
-      {
-        error: "Failed to generate course content",
-        details: err.message,
-      },
+      { error: "Failed to generate course content", details: err.message },
       { status: 500 }
     );
   }
 }
 
-const YOUTUBE_BASE_URL = 'https://www.googleapis.com/youtube/v3/search'
+// ------------ YOUTUBE VIDEO SEARCH ------------
+const YOUTUBE_BASE_URL = "https://www.googleapis.com/youtube/v3/search";
 
-const GetYoutubeVideo = async (topic)=>{
+async function GetYoutubeVideo(topic) {
+  try {
     const params = {
-        part :'snippet',
-        q:topic,
-        maxResults:4,
-        type:'video',
-        key:process.env.YOUTUBE_API_KEY
-    }
-    const resp  = await axios.get(YOUTUBE_BASE_URL,{params});
-    const youtubeVideoListResp = resp.data.items;
-    const youtubeVideoList = [];
-    youtubeVideoListResp.forEach((item)=>{
-        const data = {
-            videoId :item.id?.videoId,
-            title:item?.snippet?.title
-        }
-        youtubeVideoList.push(data);
-    })
-    console.log("youtubeVideoList",youtubeVideoList);
-    return resp.data.items;
+      part: "snippet",
+      q: topic,
+      maxResults: 4,
+      type: "video",
+      key: process.env.YOUTUBE_API_KEY,
+    };
+
+    const resp = await axios.get(YOUTUBE_BASE_URL, { params });
+
+    return resp.data.items.map((item) => ({
+      videoId: item.id?.videoId,
+      title: item.snippet?.title,
+    }));
+  } catch (err) {
+    console.error("❌ YouTube Error:", err);
+    return [];
+  }
 }
