@@ -27,8 +27,11 @@
     "next-env.d.ts",
     ".next/types/**/*.ts",
     "**/*.ts",
-    "**/*.tsx"
-, "middleware.js", "app/components/button.jsx"  ],
+    "**/*.tsx",
+    "middleware.js",
+    "app/components/button.jsx",
+    ".next/dev/types/**/*.ts"
+  ],
   "exclude": [
     "node_modules"
   ]
