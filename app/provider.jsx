@@ -1,43 +1,50 @@
 "use client";
 
-import { useUser } from '@clerk/nextjs';
-import axios from 'axios';
-import React, { useEffect, useState, createContext } from 'react';
-import SelectedChapterIndexContext from '../context/SelectedChapterIndexContext'
-// Create Context
+import { useUser } from "@clerk/nextjs";
+import axios from "axios";
+import React, {
+  useEffect,
+  useState,
+  createContext,
+  useRef,
+} from "react";
+import SelectedChapterIndexContext from "../context/SelectedChapterIndexContext";
+
 export const UserDetailContext = createContext();
 
 function Provider({ children }) {
-  const { user } = useUser();
+  const { user, isLoaded } = useUser();
   const [userDetail, setUserDetail] = useState(null);
-  const [SelectedChapterIndex,setSelectedChapterIndex] = useState(0);
+  const [SelectedChapterIndex, setSelectedChapterIndex] = useState(0);
+  const hasCreatedUser = useRef(false);
 
   useEffect(() => {
-    if (user) {
+    if (isLoaded && user && !hasCreatedUser.current) {
+      hasCreatedUser.current = true;
       createNewUser();
     }
-  }, [user]);
+  }, [isLoaded, user]);
 
   const createNewUser = async () => {
     try {
-      const result = await axios.post('/api/user', {
+      const res = await axios.post("/api/user", {
         name: user?.fullName,
-        email: user?.primaryEmailAddress?.emailAddress
+        email: user?.primaryEmailAddress?.emailAddress,
       });
-      console.log(result.data);
-      setUserDetail(result.data);
-    } catch (error) {
-      console.error("Error creating user:", error);
+      setUserDetail(res.data);
+    } catch (err) {
+      console.error("User creation failed:", err);
     }
   };
 
   return (
     <UserDetailContext.Provider value={{ userDetail, setUserDetail }}>
-    <SelectedChapterIndexContext.Provider value={{SelectedChapterIndex,setSelectedChapterIndex}}  >
-        <div>{children}</div>
-    </SelectedChapterIndexContext.Provider>
-    </UserDetailContext.Provider>  
-    
+      <SelectedChapterIndexContext.Provider
+        value={{ SelectedChapterIndex, setSelectedChapterIndex }}
+      >
+        {children}
+      </SelectedChapterIndexContext.Provider>
+    </UserDetailContext.Provider>
   );
 }
 

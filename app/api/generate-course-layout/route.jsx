@@ -3,17 +3,24 @@ import { currentUser } from "@clerk/nextjs/server";
 import { db } from "../../config/db";
 import { NextResponse } from "next/server";
 
-import { InferenceClient } from "@huggingface/inference";
+import { HfInference } from "@huggingface/inference";
 import cloudinary from "../../config/cloudinary";
 
 // -------------------------
 //  STRICT JSON PROMPT
 // -------------------------
 const PROMPT = `
-You MUST return ONLY valid JSON. 
-No markdown, no explanation, no notes, no commentary.
+You MUST return ONLY valid JSON.
+No markdown. No explanation. No extra text.
 
-Schema format to follow strictly:
+STRICT RULES:
+- chapters must NOT be empty
+- chapters.length MUST equal noOfChapters
+- Each chapter MUST have at least 5 topics
+- Topics MUST be short, clear learning titles
+- generate description also for course
+
+Schema:
 
 {
   "course": {
@@ -22,25 +29,22 @@ Schema format to follow strictly:
     "category": "string",
     "level": "string",
     "includeVideo": "boolean",
-    "noOfChapters": "number",
+    "noOfChapters": number,
     "bannerImagePrompt": "string",
     "chapters": [
       {
         "chapterName": "string",
         "duration": "string",
-        "topics": ["string"]
+        "topics": ["string", "string", "string"]
       }
     ]
   }
 }
 
-Rules:
-- Output MUST be valid JSON only.
-- Do NOT wrap inside backticks.
-- Do NOT add bold text or markdown formatting.
-
 User Input:
 `;
+
+
 
 export async function POST(req) {
   console.log("✅ HF TOKEN LOADED:", !!process.env.HUGGINGFACE_API_KEY);
@@ -56,12 +60,12 @@ export async function POST(req) {
     // -------------------------
     //  HF DeepSeek Client
     // -------------------------
-    const client = new InferenceClient(process.env.HUGGINGFACE_API_KEY);
-
+    const hf = new HfInference(process.env.HUGGINGFACE_API_KEY);
     let rawResp = "";
 
-    const chatCompletion = await client.chatCompletion({
-      model: "deepseek-ai/DeepSeek-V3.2:novita",
+
+    const chatCompletion = await hf.chatCompletion({
+      model: "mistralai/Mistral-7B-Instruct-v0.2",
       messages: [
         {
           role: "user",
@@ -71,6 +75,7 @@ export async function POST(req) {
       max_tokens: 1600,
       temperature: 0.4,
     });
+
 
     rawResp = chatCompletion?.choices?.[0]?.message?.content || "";
 
@@ -193,4 +198,4 @@ const GenerateImage = async (prompt) => {
   }
 };
 
-export default GenerateImage;
+// export default GenerateImage;

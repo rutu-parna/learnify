@@ -4,39 +4,40 @@ import { NextResponse } from "next/server";
 import { db } from "../../config/db";
 import { eq } from "drizzle-orm";
 import axios from "axios";
+import { HfInference } from "@huggingface/inference";
+const hf = new HfInference(process.env.HUGGINGFACE_API_KEY);
 
-import { InferenceClient } from "@huggingface/inference";
 import { coursesTable } from "../../config/schema";
 
-// HF Client
-const hf = new InferenceClient(process.env.HUGGINGFACE_API_KEY);
+
 
 // ------------ PROMPT ------------
 const PROMPT = `
-You MUST return ONLY VALID JSON. 
-NO markdown, NO explanations, NO extra text.
+You are an expert instructor.
 
-You will receive a chapter with:
-- chapterName
-- topics: ["t1", "t2"]
+Return ONLY valid JSON.
+No markdown. No explanations. No extra text.
 
-For each topic generate clean HTML learning content.
+STRICT RULES:
+- generate Each topic MUST contain detailed learning content
+- topic.content MUST be valid HTML
+- topic.content MUST be at least 500 words
+- DO NOT return empty content
+- Use <p>, <ul>, <li>, <code> tags
 
-STRICT JSON SCHEMA:
+JSON SCHEMA:
 {
   "chapterName": "string",
   "topics": [
     {
       "topic": "string",
-      "content": "string"
+      "content": "HTML STRING (min 500 words)"
     }
   ]
 }
 
-Return ONLY JSON. NOTHING ELSE.
-
-User Input:
-`;  
+Chapter Input:
+`; 
 
 export async function POST(req) {
   try {
@@ -55,17 +56,18 @@ export async function POST(req) {
       const prompt = PROMPT + JSON.stringify(chapter);
 
       // HF Chat Completion
+     
       const result = await hf.chatCompletion({
-        model: "deepseek-ai/DeepSeek-V3.2:novita",
-        messages: [
-          {
-            role: "user",
-            content: prompt,
-          },
-        ],
-        temperature: 0.3,
-        max_tokens: 2000,
-      });
+      model: "mistralai/Mistral-7B-Instruct-v0.2",
+      messages: [
+        {
+          role: "user",
+          content: PROMPT + JSON.stringify(chapter),
+        },
+      ],
+      temperature: 0.3,
+      max_tokens: 2000,
+    });
 
       let rawResp = result?.choices?.[0]?.message?.content || "";
       console.log("🔥 RAW HF RESPONSE:", rawResp);
